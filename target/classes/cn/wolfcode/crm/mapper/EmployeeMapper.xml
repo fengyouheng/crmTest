@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.EmployeeMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Employee">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="inputTime" property="inputTime" jdbcType="DATE"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="realname" property="realname" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="tel" property="tel" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="admin" property="admin" jdbcType="BIT"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+        <association property="dept" javaType="cn.wolfcode.crm.domain.Department" columnPrefix="dept_">
+            <result column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="sn" property="sn"/>
+        </association>
+        <collection property="roles" ofType="cn.wolfcode.crm.domain.Role" column="id"
+        	select="cn.wolfcode.crm.mapper.RoleMapper.queryByEmployee">
+        </collection>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from employee
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="cn.wolfcode.crm.domain.Employee" useGeneratedKeys="true" keyProperty="id">
+    insert into employee (inputTime, username, realname,
+      password, tel, email,
+      admin, state, deptId)
+    values (#{inputTime,jdbcType=DATE}, #{username,jdbcType=VARCHAR}, #{realname,jdbcType=VARCHAR},
+      #{password,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+      #{admin,jdbcType=BIT}, #{state,jdbcType=INTEGER}, #{dept.id,jdbcType=BIGINT})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Employee">
+        update employee
+        <set>
+            <if test="inputTime !=null">
+                inputTime = #{inputTime,jdbcType=DATE},
+            </if>
+            <if test="username !=null and username !=''">
+                username = #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="realname !=null and realname !=''">
+                realname = #{realname,jdbcType=VARCHAR},
+            </if>
+            <if test="password !=null and password !=''">
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="tel !=null and tel !=''">
+                tel = #{tel,jdbcType=VARCHAR},
+            </if>
+            <if test="email !=null and email !=''">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="admin !=null">
+                admin = #{admin,jdbcType=BIT},
+            </if>
+            <if test="state !=null">
+                state = #{state,jdbcType=INTEGER},
+            </if>
+            <if test="dept !=null and dept.id != null">
+                deptId = #{dept.id,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select emp.id, emp.inputTime, emp.username, emp.realname, emp.password, emp.tel, emp.email, emp.admin, emp.state,
+    dept.id AS dept_id, dept.name AS dept_name, dept.sn AS dept_sn
+        from employee emp LEFT JOIN department dept ON emp.deptId = dept.id
+    where emp.id = #{emp.id,jdbcType=BIGINT}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select emp.id, emp.inputTime, emp.username, emp.realname, emp.password, emp.tel, emp.email, emp.admin, emp.state,
+        dept.id AS dept_id, dept.name AS dept_name, dept.sn AS dept_sn
+        from employee emp LEFT JOIN department dept ON emp.deptId = dept.id
+  </select>
+    <sql id="where_sql">
+        <where>
+            <if test="keyword != null and keyword !=''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') OR realname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </sql>
+
+    <select id="count" resultType="java.lang.Long">
+        select COUNT(id)
+        from employee
+        <include refid="where_sql"/>
+    </select>
+    <select id="query" resultMap="BaseResultMap">
+        select emp.id, emp.inputTime, emp.username, emp.realname, emp.password, emp.tel, emp.email, emp.admin, emp.state,
+		dept.id AS dept_id, dept.name AS dept_name, dept.sn AS dept_sn
+		from employee emp 
+		LEFT JOIN department dept ON emp.deptId = dept.id
+		join employee_role er on er.employeeId = emp.id
+        <include refid="where_sql"/>
+        LIMIT #{start}, #{rows}
+    </select>
+
+    <select id="queryByUsername" resultMap="BaseResultMap">
+        select emp.id, emp.inputTime, emp.username, emp.realname, emp.password, emp.tel, emp.email, emp.admin, emp.state,
+        dept.id AS dept_id, dept.name AS dept_name, dept.sn AS dept_sn
+        from employee emp LEFT JOIN department dept ON emp.deptId = dept.id
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insertRelation">
+        insert into employee_role (employeeId, roleId)
+        values (#{employeeId}, #{roleId})
+    </insert>
+    <select id="queryRoleByEmployee" resultType="cn.wolfcode.crm.domain.Role">
+        SELECT id, sn, name FROM role WHERE id IN (SELECT roleId FROM employee_role WHERE employeeId = #{employeeId})
+    </select>
+
+    <delete id="deleteRelation">
+        delete from employee_role
+        where employeeId = #{employeeId,jdbcType=BIGINT}
+    </delete>
+	<select id="queryEmployee" resultMap="BaseResultMap">
+  	select m.id,m.realname
+  	from department d join employee m on d.manager_id = m.id 
+  </select>
+</mapper>

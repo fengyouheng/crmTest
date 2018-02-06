@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.SystemDictionaryMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.SystemDictionary" >
+    <id column="id" property="id" />
+    <result column="sn" property="sn" />
+    <result column="name" property="name" />
+    <result column="intro" property="intro" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from SystemDictionary
+    where id = #{id}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.SystemDictionary" useGeneratedKeys="true" keyProperty="id" >
+    insert into SystemDictionary (sn, name, intro)
+    values (#{sn}, #{name}, #{intro})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.SystemDictionary" >
+    update SystemDictionary
+    <set>
+    	<if test="sn != null">
+    	 sn = #{sn},
+     	</if>
+     	<if test="name != null">
+     	 name = #{name},
+      </if>
+      	<if test="intro != null">
+     	 intro = #{intro}
+      </if>
+    </set>
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, sn, name, intro
+    from systemdictionary
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, sn, name, intro
+    from systemdictionary
+  </select>
+  <select id="count" resultType="java.lang.Long">
+  	select count(sd.id)
+  	from SystemDictionary sd
+  </select>
+  <select id="query" resultMap="BaseResultMap">
+   select id, sn, name, intro
+   from systemdictionary
+   limit #{start},#{rows}
+  </select>
+</mapper>

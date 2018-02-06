@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.SystemDictionaryItemMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.SystemDictionaryItem" >
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="intro" property="intro" />
+    <result column="sn" property="sn" />
+    <association property="parent" javaType="cn.wolfcode.crm.domain.SystemDictionary" columnPrefix="sd_">
+            <id column="id" property="id"></id>
+            <result column="name" property="name"></result>
+            <result column="sn" property="sn"></result>
+            <result column="intro" property="intro"></result>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from systemdictionaryitem
+    where id = #{id}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.SystemDictionaryItem" useGeneratedKeys="true" keyProperty="id" >
+    insert into systemdictionaryitem (sn,name, intro, parent_id)
+    values (#{sn},#{name}, #{intro}, #{parent.id})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.SystemDictionaryItem" >
+    update systemdictionaryitem
+    <set>
+    	<if test="sn!= null">
+    		 sn = #{sn},
+     	</if>
+     	<if test="name!= null">
+    		 name = #{name},
+     	</if>
+     	<if test="intro!=null">
+      		intro = #{intro},
+      	</if>
+      	<if test="parent!= null and parent.id != null">
+      		parent_id = #{parent.id}
+      	</if>
+      </set>
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    	SELECT sdi.id,sdi.sn,sdi.name,sdi.intro,sdi.parent_id,sd.name as sd_name ,sd.id as sd_id,sd.sn as sd_sn,sd.intro as sd_intro
+   		from systemdictionaryitem sdi 
+   		LEFT JOIN systemdictionary sd on (sd.id=sdi.Parent_id)
+   		where sdi.id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+  		SELECT sdi.id,sdi.sn,sdi.name,sdi.intro,sdi.parent_id,sd.name as sd_name ,sd.id as sd_id,sd.sn as sd_sn,sd.intro as sd_intro
+   		from systemdictionaryitem sdi 
+   		LEFT JOIN systemdictionary sd on (sd.id=sdi.Parent_id)
+  </select>
+  
+  <!--通过字典目录id查询明细-->
+    <select id="queryBySystemDictionaryId" resultMap="BaseResultMap">
+        SELECT sdi.id,sdi.sn,sdi.name,sdi.intro,sdi.parent_id,sd.name as sd_name ,sd.id as sd_id,sd.sn as sd_sn,sd.intro as sd_intro
+   		from systemdictionaryitem sdi 
+   		LEFT JOIN systemdictionary sd on (sd.id=sdi.Parent_id)
+        where sdi.parent_id =#{id}
+    </select>
+    
+    <select id="count" resultType="java.lang.Long">
+  	select count(sdi.id)
+  	from SystemDictionaryItem sdi
+  	</select>
+  	<select id="query" resultMap="BaseResultMap">
+  	SELECT sdi.id,sdi.sn,sdi.name,sdi.intro,sdi.parent_id,sd.name as sd_name ,sd.id as sd_id,sd.sn as sd_sn,sd.intro as sd_intro
+   	from systemdictionaryitem sdi 
+   	LEFT JOIN systemdictionary sd on (sd.id=sdi.Parent_id)  
+    limit #{start},#{rows}
+  </select>
+</mapper>

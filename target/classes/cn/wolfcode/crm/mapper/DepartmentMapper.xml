@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.DepartmentMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Department" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <association property="manager" javaType="cn.wolfcode.crm.domain.Employee" columnPrefix="m_">
+    	<id column="id" property="id"/>
+    	<result column="realname" property="realname"/>
+    </association>
+    <association property="parent" javaType="cn.wolfcode.crm.domain.Department" columnPrefix="p_">
+    	<id column="id" property="id"/>
+    	<result column="name" property="name"/>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" >
+    delete from department
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.Department" useGeneratedKeys="true" keyProperty="id" >
+    insert into department (sn, name, state,manager_id,parent_id)
+    values (#{sn,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER},
+    #{manager.id,jdbcType=BIGINT},#{parent.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Department" >
+    update department set
+    	  sn = #{sn,jdbcType=VARCHAR},
+	      name = #{name,jdbcType=VARCHAR},
+	      state = #{state,jdbcType=INTEGER},
+	      manager_id = #{manager.id,jdbcType=BIGINT},
+	      parent_id = #{parent.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap"  >
+    select d.id, d.sn, d.name,
+	d.manager_id  m_id,
+	m.realname  m_realname, 
+	d.parent_id  p_id,
+	p.name  p_name, 
+	d.state
+	from department d 
+	left join employee m on m.id=d.manager_id 
+	left join department p on p.id=d.parent_id
+    where d.id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select d.id, d.sn, d.name,
+	d.manager_id as m_id,m.realname as m_realname, d.parent_id as p_id,p.name
+	as p_name, d.state
+	from department d 
+	left join employee m on m.id=d.manager_id 
+	left join department p on p.id=d.parent_id
+  </select>
+  <select id="count" resultType="java.lang.Long">
+  	select count(id)
+  	from department
+  </select>
+  <select id="query" resultMap="BaseResultMap">
+  	select d.id, d.sn, d.name,
+	d.manager_id as m_id,m.realname as m_realname, d.parent_id as p_id,p.name
+	as p_name, d.state
+	from department d 
+	left join employee m on m.id=d.manager_id 
+	left join department p on p.id=d.parent_id
+  	limit #{start},#{rows}
+  </select>
+  
+  <select id="queryEmployee" resultMap="BaseResultMap">
+  	select m.id m_id,m.realname m_realname
+  	from department d join employee m on d.manager_id = m.id 
+  </select>
+  <select id="selectManagerByEmployeeId" resultMap="BaseResultMap">
+  	select emp.id,emp.realname
+	from department dept
+	join employee emp on emp.id = dept.manager_id
+	where dept.id = #{id}
+  </select>
+</mapper>

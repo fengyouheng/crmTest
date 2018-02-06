@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.crm.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Role" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.wolfcode.crm.domain.Role" useGeneratedKeys="true" keyProperty="id" >
+    insert into role (sn, name)
+    values (#{sn,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.crm.domain.Role" >
+    update role
+    set sn = #{sn,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, sn, name
+    from role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, sn, name
+    from role
+  </select>
+    <select id="count" resultType="java.lang.Long">
+        select count(id)
+        from role
+    </select>
+    <select id="query" resultMap="BaseResultMap">
+        select id, sn, name
+        from role
+        LIMIT #{start}, #{rows}
+    </select>
+
+    <insert id="insertRelation">
+        insert into role_permission (roleId, permissionId)
+        values (#{roleId}, #{permissionId})
+    </insert>
+
+    <select id="queryPermissionsByRole" resultType="cn.wolfcode.crm.domain.Permission">
+        SELECT id, name, resource FROM permission WHERE id IN( SELECT permissionId FROM role_permission where roleId = #{roleId})
+    </select>
+    <select id="queryByEmployee" resultType="string">
+        SELECT name FROM role WHERE id IN(SELECT roleId FROM employee_role WHERE employeeId = #{id})
+    </select>
+    <delete id="deleteRelation">
+        delete from role_permission
+        where roleId = #{roleId}
+    </delete>
+    <delete id="deleteMenuRelation">
+        delete from role_menu where roleId = #{roleId}
+    </delete>
+
+    <insert id="insertMeneRelation">
+        insert into role_menu(roleId, menuId) values(#{roleId}, #{systemMenuId})
+    </insert>
+
+
+</mapper>
